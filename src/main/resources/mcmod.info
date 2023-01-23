@@ -1,0 +1,16 @@
+[
+{
+  "modid": "levelpanic",
+  "name": "Level Panic",
+  "description": "Panic when a high BedWars player is in your lobby",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["thelennylord"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
