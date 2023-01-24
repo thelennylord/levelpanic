@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import me.thelennylord.levelpanic.commands.ConfigModifyCommand;
 import me.thelennylord.levelpanic.commands.ConfigReloadCommand;
 import me.thelennylord.levelpanic.miscs.Moyai;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -36,5 +37,6 @@ public class LevelPanic {
 
         // Register command
         ClientCommandHandler.instance.registerCommand(new ConfigReloadCommand());
+        ClientCommandHandler.instance.registerCommand(new ConfigModifyCommand());
     }
 }

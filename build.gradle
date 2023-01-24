@@ -30,6 +30,9 @@ version = "1.0"
 group= "me.thelennylord.levelpanic" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "levelpanic"
 
+sourceCompatibility = targetCompatibility = 1.8
+compileJava.options.encoding = "UTF-8"
+
 minecraft {
     version = "1.8.9-11.15.1.2318-1.8.9"
     runDir = "run"
@@ -83,10 +86,6 @@ processResources
 
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
-
-def javaVersion = JavaVersion.VERSION_1_8;
-sourceCompatibility = javaVersion;
-targetCompatibility = javaVersion;
 
 shadowJar {
     dependencies {
