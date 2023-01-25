@@ -13,6 +13,7 @@ public class ConfigHandler {
     public static boolean avoidNicks;
     public static int levelThreshold;
     public static float kdrThreshold;
+    public static float wlrThreshold;
     
     public static boolean autoPlay = false;
 
@@ -30,6 +31,7 @@ public class ConfigHandler {
         avoidNicks = config.getBoolean("avoidNicks", category, true, "Avoid nicked players in the game");
         levelThreshold = config.getInt("levelThreshold", category, 150, 0, Integer.MAX_VALUE, "Avoid players who meet the level threshold");
         kdrThreshold = config.getFloat("kdrThreshold", category, 10.0f, 0.0f, Float.MAX_VALUE, "Avoid players who meet the KDR threshold (average of kdr and fkdr of all modes)");
+        wlrThreshold = config.getFloat("wlrThreshold", category, 5.0f, 0.0f, Float.MAX_VALUE, "Avoid players who meet the W/L ratio threshold");
 
         autoPlay = config.getBoolean("autoPlay", category, false, "Join a new game if one of the checks returns true");
 

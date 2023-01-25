@@ -4,8 +4,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import org.apache.logging.log4j.core.helpers.SystemClock;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
@@ -43,6 +41,7 @@ public class LobbyHandler {
     private final String NICK_DETECTED = EnumChatFormatting.RED + "" + EnumChatFormatting.BOLD + "[WARNING] " + EnumChatFormatting.RESET + EnumChatFormatting.LIGHT_PURPLE + "%s" + EnumChatFormatting.RED + " is nicked!";
     private final String MET_LEVEL_THRESHOLD = EnumChatFormatting.RED + "" + EnumChatFormatting.BOLD + "[WARNING] " + EnumChatFormatting.RESET + EnumChatFormatting.LIGHT_PURPLE + "%s" + EnumChatFormatting.AQUA + " (" + "%d" + ") " + EnumChatFormatting.RED + "meets the level threshold!";
     private final String MET_KDR_THRESHOLD = EnumChatFormatting.RED + "" + EnumChatFormatting.BOLD + "[WARNING] " + EnumChatFormatting.RESET + EnumChatFormatting.LIGHT_PURPLE + "%s" + EnumChatFormatting.GREEN + " (" + "%.2f" + ") " + EnumChatFormatting.RED + "meets the KDR threshold!";
+    private final String MET_WLR_THRESHOLD = EnumChatFormatting.RED + "" + EnumChatFormatting.BOLD + "[WARNING] " + EnumChatFormatting.RESET + EnumChatFormatting.LIGHT_PURPLE + "%s" + EnumChatFormatting.YELLOW + " (" + "%.2f" + ") " + EnumChatFormatting.RED + "meets the W/L threshold!";
 
 
     public boolean isBedwarsLobby() {
@@ -97,8 +96,15 @@ public class LobbyHandler {
                         return;
                     }
                     
-                    float kdr = player.getFloatProperty("stats.Bedwars.kills_bedwars", 0.0f) / player.getFloatProperty("stats.Bedwars.deaths_bedwars", 1.0f);
-                    float fkdr = player.getFloatProperty("stats.Bedwars.final_kills_bedwars", 0.0f) / player.getFloatProperty("stats.Bedwars.final_deaths_bedwars", 1.0f);
+                    float wlr = player.getIntProperty("stats.Bedwars.wins_bedwars", 0) / player.getIntProperty("stats.Bedwars.losses_bedwars", 1);
+                    if ( wlr >= ConfigHandler.wlrThreshold ) {
+                        thePlayer.addChatMessage(new ChatComponentText(String.format(MET_WLR_THRESHOLD, playerName, wlr)));
+                        shouldAutoPlay();
+                        return;
+                    }
+
+                    float kdr = player.getIntProperty("stats.Bedwars.kills_bedwars", 0) / player.getIntProperty("stats.Bedwars.deaths_bedwars", 1);
+                    float fkdr = player.getIntProperty("stats.Bedwars.final_kills_bedwars", 0) / player.getIntProperty("stats.Bedwars.final_deaths_bedwars", 1);
                     float avgKdr = (kdr + fkdr) * 0.5f;
                     if ( avgKdr >= ConfigHandler.kdrThreshold ) {
                         thePlayer.addChatMessage(new ChatComponentText(String.format(MET_KDR_THRESHOLD, playerName, avgKdr)));
