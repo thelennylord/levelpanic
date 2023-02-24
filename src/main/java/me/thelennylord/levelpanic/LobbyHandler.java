@@ -11,8 +11,8 @@ import com.mojang.authlib.GameProfile;
 
 import net.hypixel.api.HypixelAPI;
 import net.hypixel.api.apache.ApacheHttpClient;
+import net.hypixel.api.exceptions.BadStatusCodeException;
 import net.hypixel.api.http.HypixelHttpClient;
-import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.PlayerReply.Player;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -29,8 +29,8 @@ import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientConnectedToSe
 import net.minecraftforge.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 
 public class LobbyHandler {
-    public static final HypixelHttpClient client = new ApacheHttpClient(UUID.fromString(ConfigHandler.APIKey));
-    public static final HypixelAPI API = new HypixelAPI(client);
+    public static HypixelHttpClient client = new ApacheHttpClient(ConfigHandler.APIKey);
+    public static HypixelAPI API = new HypixelAPI(client);
 
     private boolean onHypixel = false;
     private boolean awaitingStats = false;
@@ -78,54 +78,49 @@ public class LobbyHandler {
     }
 
     public void checkPlayer(UUID playerUUID, String playerName) {
-        LevelPanic.logger.info("Checking: " + playerName + "@" + playerUUID);
         if (mc.thePlayer.getUniqueID().equals(playerUUID))
             return;
-
-        Thread t1 = new Thread() {
-                
-            public void run() {
-                try {
-                    PlayerReply reply = LobbyHandler.API.getPlayerByUuid(playerUUID).get();
-                    Player player = reply.getPlayer();
-                    EntityPlayerSP thePlayer = mc.thePlayer;
-
-                    if (ConfigHandler.avoidNicks && !player.exists()) {
-                        thePlayer.addChatMessage(new ChatComponentText(String.format(NICK_DETECTED, playerName)));
-                        shouldAutoPlay();
-                        return;
-                    }
-                    
-                    float wlr = player.getIntProperty("stats.Bedwars.wins_bedwars", 0) / player.getIntProperty("stats.Bedwars.losses_bedwars", 1);
-                    if ( wlr >= ConfigHandler.wlrThreshold ) {
-                        thePlayer.addChatMessage(new ChatComponentText(String.format(MET_WLR_THRESHOLD, playerName, wlr)));
-                        shouldAutoPlay();
-                        return;
-                    }
-
-                    float kdr = player.getIntProperty("stats.Bedwars.kills_bedwars", 0) / player.getIntProperty("stats.Bedwars.deaths_bedwars", 1);
-                    float fkdr = player.getIntProperty("stats.Bedwars.final_kills_bedwars", 0) / player.getIntProperty("stats.Bedwars.final_deaths_bedwars", 1);
-                    float avgKdr = (kdr + fkdr) * 0.5f;
-                    if ( avgKdr >= ConfigHandler.kdrThreshold ) {
-                        thePlayer.addChatMessage(new ChatComponentText(String.format(MET_KDR_THRESHOLD, playerName, avgKdr)));
-                        shouldAutoPlay();
-                        return;
-                    }
-
-                    int level = player.getIntProperty("achievements.bedwars_level", 0);
-                    if (level >= ConfigHandler.levelThreshold) {
-                        thePlayer.addChatMessage(new ChatComponentText(String.format(MET_LEVEL_THRESHOLD, playerName, level)));
-                        shouldAutoPlay();
-                        return;
-                    }
-    
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
+        
+        LevelPanic.logger.info("Checking: " + playerName + "@" + playerUUID);
+        LobbyHandler.API.getPlayerByUuid(playerUUID).whenComplete((reply, error) -> {
+            if (error != null) {
+                LevelPanic.logger.error(error.getStackTrace());
+                return;
             }
-        };
+            
+            EntityPlayerSP thePlayer = mc.thePlayer;
+            Player player = reply.getPlayer();
 
-        t1.start();
+            if (ConfigHandler.avoidNicks && !player.exists()) {
+                thePlayer.addChatMessage(new ChatComponentText(String.format(NICK_DETECTED, playerName)));
+                shouldAutoPlay();
+                return;
+            }
+            
+            float wlr = player.getIntProperty("stats.Bedwars.wins_bedwars", 0) / player.getIntProperty("stats.Bedwars.losses_bedwars", 1);
+            if ( wlr >= ConfigHandler.wlrThreshold ) {
+                thePlayer.addChatMessage(new ChatComponentText(String.format(MET_WLR_THRESHOLD, playerName, wlr)));
+                shouldAutoPlay();
+                return;
+            }
+
+            float kdr = player.getIntProperty("stats.Bedwars.kills_bedwars", 0) / player.getIntProperty("stats.Bedwars.deaths_bedwars", 1);
+            float fkdr = player.getIntProperty("stats.Bedwars.final_kills_bedwars", 0) / player.getIntProperty("stats.Bedwars.final_deaths_bedwars", 1);
+            float avgKdr = (kdr + fkdr) * 0.5f;
+            if ( avgKdr >= ConfigHandler.kdrThreshold ) {
+                thePlayer.addChatMessage(new ChatComponentText(String.format(MET_KDR_THRESHOLD, playerName, avgKdr)));
+                shouldAutoPlay();
+                return;
+            }
+
+            int level = player.getIntProperty("achievements.bedwars_level", 0);
+            if (level >= ConfigHandler.levelThreshold) {
+                thePlayer.addChatMessage(new ChatComponentText(String.format(MET_LEVEL_THRESHOLD, playerName, level)));
+                shouldAutoPlay();
+                return;
+            }
+
+        });
     }
 
     @SubscribeEvent

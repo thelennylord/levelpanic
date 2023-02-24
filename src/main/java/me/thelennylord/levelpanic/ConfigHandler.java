@@ -1,6 +1,7 @@
 package me.thelennylord.levelpanic;
 
 import java.io.File;
+import java.util.UUID;
 
 import net.minecraftforge.common.config.Configuration;
 
@@ -8,7 +9,7 @@ public class ConfigHandler {
     public static File configFile;
     public static Configuration config;
 
-    public static String APIKey;
+    public static UUID APIKey;
 
     public static boolean avoidNicks;
     public static int levelThreshold;
@@ -26,7 +27,15 @@ public class ConfigHandler {
         String category = "general";
         
         config.addCustomCategoryComment(category, "General configurations");
-        APIKey = config.getString("APIKey", category, "c1ddb1e5-8923-469b-91af-4ff72defb211", "Your Hypixel API key");
+        
+        String exampleUUID = "c1ddb1e5-8923-469b-91af-4ff72defb211";
+        try {
+            String rawKey = config.getString("APIKey", category, exampleUUID, "Your Hypixel API key");
+            APIKey = UUID.fromString(rawKey);
+        } catch (IllegalArgumentException exception) {
+            config.get(category, "APIKey", exampleUUID, "Your Hypixel API key").setValue(exampleUUID);
+            APIKey = UUID.fromString(exampleUUID);
+        }
 
         avoidNicks = config.getBoolean("avoidNicks", category, true, "Avoid nicked players in the game");
         levelThreshold = config.getInt("levelThreshold", category, 150, 0, Integer.MAX_VALUE, "Avoid players who meet the level threshold");
